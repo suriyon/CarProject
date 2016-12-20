@@ -8,6 +8,7 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableModel;
 
 import dao.CarDAO;
 import model.Car;
@@ -19,8 +20,15 @@ import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.util.Vector;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
+import java.awt.Toolkit;
+import javax.swing.SwingConstants;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class CarJFrame extends JFrame {
 
@@ -33,8 +41,16 @@ public class CarJFrame extends JFrame {
 	private JComboBox cmbColor;
 	private JButton btnUpdate;
 	private JButton btnSearch;
-	private JButton btnEdit;
+	private JButton btnClose;
 	private JButton btnDelete;
+	private JPanel panel_3;
+	private JTextField txtSearch;
+	private JButton btnSearchBrand;
+	private JScrollPane scrollPane;
+	
+	private JTable table;
+	private DefaultTableModel dtm;
+	private int rowSelected;
 
 	/**
 	 * Launch the application.
@@ -57,17 +73,18 @@ public class CarJFrame extends JFrame {
 		});
 	}
 
-	/**
-	 * Create the frame.
-	 */
-	public CarJFrame() {
+	public CarJFrame() {		
+		setResizable(false);
+		setIconImage(Toolkit.getDefaultToolkit().getImage(CarJFrame.class.getResource("/image32/car.png")));
 		setTitle("Car JFrmae");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 428);
+		setBounds(100, 100, 450, 488);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
+		
+		setLocationRelativeTo(null);
 		
 		JPanel panel = new JPanel();
 		panel.setBorder(new TitledBorder(null, "Car Detail", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -154,6 +171,7 @@ public class CarJFrame extends JFrame {
 		panel_1.setLayout(null);
 		
 		btnInsert = new JButton("Insert");
+		btnInsert.setIcon(new ImageIcon(CarJFrame.class.getResource("/image16/add.png")));
 		btnInsert.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				String brand = txtBrand.getText();
@@ -175,10 +193,12 @@ public class CarJFrame extends JFrame {
 				clearInput();
 			}
 		});
-		btnInsert.setBounds(10, 23, 61, 29);
+		btnInsert.setBounds(15, 23, 82, 29);
 		panel_1.add(btnInsert);
 		
 		btnUpdate = new JButton("Update");
+		btnUpdate.setEnabled(false);
+		btnUpdate.setIcon(new ImageIcon(CarJFrame.class.getResource("/image16/update.png")));
 		btnUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String brand = txtBrand.getText();
@@ -194,27 +214,32 @@ public class CarJFrame extends JFrame {
 				
 				if(result){
 					JOptionPane.showMessageDialog(null, "Update Successfully.");
+					addDataToTable();
 				}else{
 					JOptionPane.showMessageDialog(null, "Update Fail.");
 				}
 				
 				clearInput();
-				txtId.setEnabled(false);				
+				txtId.setEnabled(false);	
+				disableButton();
 			}
 		});
-		btnUpdate.setBounds(155, 23, 67, 29);
+		btnUpdate.setBounds(112, 23, 92, 29);
 		panel_1.add(btnUpdate);
 		
-		btnEdit = new JButton("Edit");
-		btnEdit.addActionListener(new ActionListener() {
+		btnClose = new JButton("Close");
+		btnClose.setIcon(new ImageIcon(CarJFrame.class.getResource("/image16/cancel.png")));
+		btnClose.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				txtId.setEnabled(true);
+				System.exit(0);
 			}
 		});
-		btnEdit.setBounds(81, 23, 61, 29);
-		panel_1.add(btnEdit);
+		btnClose.setBounds(317, 23, 80, 29);
+		panel_1.add(btnClose);
 		
 		btnDelete = new JButton("Delete");
+		btnDelete.setEnabled(false);
+		btnDelete.setIcon(new ImageIcon(CarJFrame.class.getResource("/image16/delete.png")));
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int id = Integer.parseInt(txtId.getText());
@@ -224,16 +249,69 @@ public class CarJFrame extends JFrame {
 				
 				if(result){
 					JOptionPane.showMessageDialog(null, "Delete Successfully.");
+					addDataToTable();
 				}else{
 					JOptionPane.showMessageDialog(null, "Delete Fail.");
 				}
 				
 				clearInput();
-				txtId.setEnabled(false);	
+				txtId.setEnabled(false);
+				disableButton();
 			}
 		});
-		btnDelete.setBounds(240, 26, 67, 29);
+		btnDelete.setBounds(219, 23, 83, 29);
 		panel_1.add(btnDelete);
+		
+		JPanel panel_2 = new JPanel();
+		panel_2.setBorder(new TitledBorder(null, "Information", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		panel_2.setBounds(10, 311, 414, 128);
+		contentPane.add(panel_2);
+		panel_2.setLayout(null);
+		
+		scrollPane = new JScrollPane();
+		scrollPane.setBounds(10, 24, 394, 93);
+		panel_2.add(scrollPane);
+		
+		panel_3 = new JPanel();
+		panel_3.setBorder(new TitledBorder(null, "Search", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		panel_3.setBounds(10, 246, 414, 62);
+		contentPane.add(panel_3);
+		panel_3.setLayout(null);
+		
+		btnSearchBrand = new JButton("Search");
+		btnSearchBrand.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String search = txtSearch.getText();
+				addDataToTable(search);
+			}
+		});
+		btnSearchBrand.setIcon(new ImageIcon(CarJFrame.class.getResource("/image16/magnifier.png")));
+		btnSearchBrand.setBounds(304, 16, 89, 29);
+		panel_3.add(btnSearchBrand);
+		
+		txtSearch = new JTextField();
+		txtSearch.setColumns(10);
+		txtSearch.setBounds(100, 20, 193, 20);
+		panel_3.add(txtSearch);
+		
+		JLabel lblEnterBrand = new JLabel("enter brand");
+		lblEnterBrand.setHorizontalAlignment(SwingConstants.CENTER);
+		lblEnterBrand.setBounds(10, 26, 94, 14);
+		panel_3.add(lblEnterBrand);
+		
+		prepareTable();
+		addDataToTable();
+	}
+
+	protected void addDataToTable(String search) {
+		if(dtm.getRowCount() > 0){
+			clearDataTable();
+		}
+		CarDAO dao = new CarDAO();
+		Vector cars = dao.selectCarByBrand(search);
+		for(int i=0; i<cars.size(); i++){
+			dtm.addRow((Vector) cars.get(i));
+		}
 	}
 
 	protected void clearInput() {
@@ -242,6 +320,84 @@ public class CarJFrame extends JFrame {
 		txtModel.setText("");
 		txtPrice.setText("");
 		cmbColor.setSelectedIndex(0);
+		txtSearch.setText("");
+	}
+	
+	public void prepareTable(){
+		dtm = new DefaultTableModel();
+		dtm.addColumn("id");
+		dtm.addColumn("brand");
+		dtm.addColumn("model");
+		dtm.addColumn("color");
+		dtm.addColumn("price");
 		
+		table = new JTable(dtm);
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+				rowSelected = table.getSelectedRow();
+				txtId.setText(table.getValueAt(rowSelected, 0).toString());
+				txtBrand.setText(table.getValueAt(rowSelected, 1).toString());
+				txtModel.setText(table.getValueAt(rowSelected, 2).toString());
+				txtPrice.setText(table.getValueAt(rowSelected, 4).toString());
+				String color = table.getValueAt(rowSelected, 3).toString();
+				
+				enableButton();
+				
+				int size = cmbColor.getModel().getSize();
+//				JOptionPane.showMessageDialog(null, "" + size);
+				for(int i=0; i<size; i++){
+					if(color.equals(cmbColor.getModel().getElementAt(i))){
+						cmbColor.setSelectedIndex(i);
+						return;
+					}
+				}	
+								
+			}
+		});
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		table.getColumnModel().getColumn(0).setPreferredWidth(50);
+		table.getColumnModel().getColumn(1).setPreferredWidth(120);
+		table.getColumnModel().getColumn(2).setPreferredWidth(120);
+		table.getColumnModel().getColumn(3).setPreferredWidth(100);
+		table.getColumnModel().getColumn(4).setPreferredWidth(50);
+		table.setFillsViewportHeight(true);
+
+		scrollPane.add(table);
+		scrollPane.setViewportView(table);
+	}
+	
+	protected void enableButton() {
+		btnUpdate.setEnabled(true);
+		btnDelete.setEnabled(true);
+		
+		btnInsert.setEnabled(false);		
+	}
+
+	protected void disableButton() {
+		btnUpdate.setEnabled(false);
+		btnDelete.setEnabled(false);
+		
+		btnInsert.setEnabled(true);		
+	}
+	
+	public void addDataToTable(){
+		if(dtm.getRowCount() > 0){
+			clearDataTable();
+		}
+		CarDAO dao = new CarDAO();
+		Vector cars = dao.selectAll();
+		for(int i=0; i<cars.size(); i++){
+			dtm.addRow((Vector) cars.get(i));
+		}
+	}
+	
+	public void clearDataTable(){
+		if(dtm.getRowCount() > 0){
+			int row = dtm.getRowCount();
+			for(int i=0;i<row;i++){
+				dtm.removeRow(0);
+			}
+		}
 	}
 }

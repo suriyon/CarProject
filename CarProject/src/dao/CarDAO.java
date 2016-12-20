@@ -2,9 +2,11 @@ package dao;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import model.Car;
 import util.MySQLHelper;
@@ -113,6 +115,57 @@ public class CarDAO {
 				car.setColor(rs.getString("color"));
 				car.setPrice(rs.getInt("price"));	
 				
+				cars.add(car);
+			}
+			rs.close();
+			ps.close();
+			MySQLHelper.closeDB();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return cars;		
+	}
+	public Vector selectAll(){
+		Vector cars = new Vector();	
+		String sql = "select * from car";
+		try {
+			PreparedStatement ps = MySQLHelper.openDB().prepareStatement(sql);			
+			
+			ResultSet rs = ps.executeQuery();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			while(rs.next()){
+				Vector car = new Vector();
+				for(int i=1; i<=rsmd.getColumnCount(); i++){
+					car.add(rs.getString(i));
+				}				
+				cars.add(car);
+			}
+			rs.close();
+			ps.close();
+			MySQLHelper.closeDB();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return cars;		
+	}
+	
+	public Vector selectCarByBrand(String brand){
+		Vector cars = new Vector();	
+		String sql = "select * from car where brand = ?";
+		try {
+			PreparedStatement ps = MySQLHelper.openDB().prepareStatement(sql);
+			ps.setString(1, brand);
+			
+			ResultSet rs = ps.executeQuery();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			
+			while(rs.next()){
+				Vector car = new Vector();
+				for(int i=1; i<=rsmd.getColumnCount(); i++){
+					car.add(rs.getString(i));
+				}
 				cars.add(car);
 			}
 			rs.close();
