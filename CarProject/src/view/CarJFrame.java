@@ -186,11 +186,13 @@ public class CarJFrame extends JFrame {
 				
 				if(result){
 					JOptionPane.showMessageDialog(null, "Insert Successfully.");
+					addDataToTable();
 				}else{
 					JOptionPane.showMessageDialog(null, "Insert Fail.");
 				}
 				
 				clearInput();
+				disableButton();
 			}
 		});
 		btnInsert.setBounds(15, 23, 82, 29);
