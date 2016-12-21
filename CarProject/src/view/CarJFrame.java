@@ -333,7 +333,18 @@ public class CarJFrame extends JFrame {
 		dtm.addColumn("color");
 		dtm.addColumn("price");
 		
-		table = new JTable(dtm);
+		table = new JTable(dtm){
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+		};
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent arg0) {
@@ -365,6 +376,8 @@ public class CarJFrame extends JFrame {
 		table.getColumnModel().getColumn(4).setPreferredWidth(50);
 		table.setFillsViewportHeight(true);
 
+		table.getTableHeader().setReorderingAllowed(false);
+		
 		scrollPane.add(table);
 		scrollPane.setViewportView(table);
 	}

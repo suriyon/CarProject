@@ -13,6 +13,17 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import dao.CarDAO;
+import model.Car;
+
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
 
 public class TableJFrame extends JFrame {
 
@@ -20,6 +31,16 @@ public class TableJFrame extends JFrame {
 	private JTable table;
 	private JScrollPane scrollPane;
 	private DefaultTableModel model;
+	private JPanel panel;
+	private JTextField txtBrand;
+	private JTextField txtModel;
+	private JTextField txtPrice;
+	private JButton btnInsert;
+	private JLabel lblNewLabel;
+	private JLabel lblNewLabel_1;
+	private JLabel lblNewLabel_2;
+	private JLabel lblNewLabel_3;
+	private JComboBox cmbColor;
 
 	/**
 	 * Launch the application.
@@ -57,29 +78,19 @@ public class TableJFrame extends JFrame {
 		scrollPane = new JScrollPane();
 		contentPane.add(scrollPane, BorderLayout.CENTER);
 		
-		table = new JTable();
+		table = new JTable(){
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+		};
 		table.setFillsViewportHeight(true);
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		model = new DefaultTableModel(null, new String[] {"รหัส","ยี่ห้อรถยนต์","รุ่นรถยนต์","สีรถยนต์","ราคารถยนต์"});
-//		model = new DefaultTableModel(
-//				new Object[][] {
-//				},
-//				new String[] {
-//					"\u0E23\u0E2B\u0E31\u0E2A\u0E23\u0E16\u0E22\u0E19\u0E15\u0E4C", "\u0E22\u0E35\u0E48\u0E2B\u0E49\u0E2D\u0E23\u0E16\u0E22\u0E19\u0E15\u0E4C", "\u0E23\u0E38\u0E48\u0E19\u0E23\u0E16\u0E22\u0E19\u0E15\u0E4C", "\u0E2A\u0E35\u0E23\u0E16\u0E22\u0E19\u0E15\u0E4C", "\u0E23\u0E32\u0E04\u0E32\u0E23\u0E16\u0E22\u0E19\u0E15\u0E4C"
-//				}
-//			);
+		model = new DefaultTableModel(null, new String[] {"รหัส","ยี่ห้อรถยนต์","รุ่นรถยนต์","สีรถยนต์","ราคารถยนต์"});		
 		table.setModel(model);
 		
-//		model = new DefaultTableModel();
-//		table.setModel(new DefaultTableModel(
-//			new Object[][] {
-//			},
-//			new String[] {
-//				"\u0E23\u0E2B\u0E31\u0E2A\u0E23\u0E16\u0E22\u0E19\u0E15\u0E4C", "\u0E22\u0E35\u0E48\u0E2B\u0E49\u0E2D\u0E23\u0E16\u0E22\u0E19\u0E15\u0E4C", "\u0E23\u0E38\u0E48\u0E19\u0E23\u0E16\u0E22\u0E19\u0E15\u0E4C", "\u0E2A\u0E35\u0E23\u0E16\u0E22\u0E19\u0E15\u0E4C", "\u0E23\u0E32\u0E04\u0E32\u0E23\u0E16\u0E22\u0E19\u0E15\u0E4C"
-//			}
-//		));
-		
-		table.getColumnModel().getColumn(0).setResizable(false);
+		table.getColumnModel().getColumn(0).setResizable(false);		
 		table.getColumnModel().getColumn(0).setPreferredWidth(100);
 		table.getColumnModel().getColumn(1).setResizable(false);
 		table.getColumnModel().getColumn(1).setPreferredWidth(250);
@@ -94,7 +105,68 @@ public class TableJFrame extends JFrame {
 		
 		scrollPane.setViewportView(table);
 		
+		panel = new JPanel();
+		contentPane.add(panel, BorderLayout.NORTH);
+		
+		lblNewLabel = new JLabel("brand");
+		panel.add(lblNewLabel);
+		
+		txtBrand = new JTextField();
+		panel.add(txtBrand);
+		txtBrand.setColumns(10);
+		
+		lblNewLabel_1 = new JLabel("model");
+		panel.add(lblNewLabel_1);
+		
+		txtModel = new JTextField();
+		panel.add(txtModel);
+		txtModel.setColumns(10);
+		
+		lblNewLabel_2 = new JLabel("color");
+		panel.add(lblNewLabel_2);
+		
+		cmbColor = new JComboBox();
+		cmbColor.setModel(new DefaultComboBoxModel(new String[] {"WHITE", "BLACK", "RED", "YELLOW", "GRAY", "BLUE"}));
+		panel.add(cmbColor);
+		
+		lblNewLabel_3 = new JLabel("price");
+		panel.add(lblNewLabel_3);
+		
+		txtPrice = new JTextField();
+		panel.add(txtPrice);
+		txtPrice.setColumns(10);
+		
+		btnInsert = new JButton("Insert");
+		btnInsert.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String brand = txtBrand.getText();
+				String model = txtModel.getText();
+				String color = cmbColor.getSelectedItem().toString();
+				int price = Integer.parseInt(txtPrice.getText());
+				
+				Car car = new Car(brand, model, color, price);
+				CarDAO dao = new CarDAO();
+				boolean result = dao.insert(car);
+				
+				if(result){
+					JOptionPane.showMessageDialog(null, "Insert Success");		
+					addDataToTable();
+				}else{
+					JOptionPane.showMessageDialog(null, "Insert Fail");
+				}
+				clearText();
+			}
+		});
+		panel.add(btnInsert);
+		
 		addDataToTable();
+	}
+
+	protected void clearText() {
+		txtBrand.setText("");
+		txtModel.setText("");
+		txtPrice.setText("");
+		cmbColor.setSelectedIndex(0);
 	}
 
 	private void addDataToTable() {
